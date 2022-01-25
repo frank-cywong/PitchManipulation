@@ -1,5 +1,6 @@
 import pyaudio
 import numpy as np
+from scipy.io.wavfile import write
 import sys
 
 args = sys.argv[1:]
@@ -31,3 +32,5 @@ stream.write(output)
 stream.stop_stream()
 stream.close()
 p.terminate()
+
+write('gen.wav', fs, output)
