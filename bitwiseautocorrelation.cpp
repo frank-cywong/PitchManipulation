@@ -2,6 +2,7 @@
 #include <iostream>
 #include <bitset>
 #include <climits>
+#include <cmath>
 
 using namespace std;
 
@@ -78,12 +79,38 @@ int main(){
 	reqvolume = maxvolume * limitpercent;
 	bitset<10000> basecrossingbits;
 	getBits(&basecrossingbits, 0);
-	cout << "base loaded";
-	cout << basecrossingbits;
+	cout << "base loaded" << endl;
+	//cout << basecrossingbits << endl;
 	int cur_min_xor = INT_MAX;
-	int min_xor_pos = 0;
+	double cur_time_diff = 0;
 	int temp_bit_count = 0;
 	bitset<10000> curtest;
+	for(auto it = crossings.begin(); it != crossings.end(); it++){
+		if((*it)->starttime > window){
+			break;
+		}
+		for(auto it2 = crossings.begin(); it2 != crossings.end(); it2++){
+			double timeDiff = ((*it2)->starttime - (*it)->starttime);
+			if(timeDiff <= 0.0){ // require that crossing 2 time > crossing 1 time
+				continue;
+			}
+			if(timeDiff > window){ // no need to check this far out
+				break;
+			}
+			int shiftDist = round(timeDiff * sampleRate);
+			curtest.reset();
+			getBits(&curtest, shiftDist);
+			curtest ^= basecrossingbits;
+			temp_bit_count = (int)(curtest.count());
+			if(temp_bit_count < cur_min_xor){
+				//cout << "cur time diff: " << timeDiff << endl;
+				//cout << "set min xor to: " << temp_bit_count << ", with freq: " << (1/timeDiff) << endl;
+				cur_min_xor = temp_bit_count;
+				cur_time_diff = timeDiff;
+			}
+		}
+	}
+	/*
 	for(int i = 10; i < windowsize; i++){
 		curtest.reset();
 		getBits(&curtest, i);
@@ -96,7 +123,8 @@ int main(){
 		}
 		cout << i << endl;
 	}
-	cout << "min xor pos: " << min_xor_pos << endl;
-	cout << "calculated freq: " << (double)sampleRate / (double)min_xor_pos;
+	*/
+	//cout << "time diff: " << cur_time_diff << endl;
+	cout << "calculated freq: " << 1 / cur_time_diff;
 	return 0;
 }
